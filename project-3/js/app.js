@@ -25,39 +25,48 @@ async function getAccessToken() {
     accessToken = data.access_token;
 }
 
-async function searchMusic(event) {
-    event.preventDefault(); // Prevent the form from submitting
-    const query = document.getElementById('search-input').value;
+// async function searchMusic(event) {
+//     event.preventDefault(); // Prevent the form from submitting
+//     const query = document.getElementById('search-input').value;
     
-    if (query) {
-        const searchResponse = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
+//     if (query) {
+//         const searchResponse = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track`, {
+//             method: 'GET',
+//             headers: {
+//                 'Authorization': `Bearer ${accessToken}`
+//             }
+//         });
 
-        const searchData = await searchResponse.json();
-        const changeimg = document.getElementById('imgchange');
-        if (searchData.tracks.items.length > 0) {
-            const track = searchData.tracks.items[0];
-            playTrack(track);
-            getLyrics(track.artists[0].name, track.name); // Fetch lyrics for the track
-            ctrIcon.classList.remove("fa-play");
-            ctrIcon.classList.add("fa-pause");
-            changeimg.src = track.album.images[0].url;
-            saveData();
+//         const searchData = await searchResponse.json();
+//         const changeimg = document.getElementById('imgchange');
+//         if (searchData.tracks.items.length > 0) {
+//             const track = searchData.tracks.items[0];
+//             playTrack(track);
+//             getLyrics(track.artists[0].name, track.name); // Fetch lyrics for the track
+//             ctrIcon.classList.remove("fa-play");
+//             ctrIcon.classList.add("fa-pause");
+//             changeimg.src = track.album.images[0].url;
+//             saveData();
 
-        }
+//         }
+//     }
+// }
+
+function playTrack(track) {
+    if (track.preview_url) {
+        song.src = track.preview_url;
+        song.play();
+        document.getElementById('Music-name').textContent = track.name;
+        document.getElementById('Artist-name').textContent = track.artist;
+
+        // Fetch lyrics when the track starts playing
+        getLyrics(track.artist, track.name);
+    } else {
+        console.log('No preview available for this track.');
+        
     }
 }
 
-function playTrack(track) {
-    song.src = track.preview_url; // Use preview_url for a short sample
-    song.play();
-    document.getElementById('Music-name').textContent = track.name;
-    document.getElementById('Artist-name').textContent = track.artists[0].name;
-}
 
 function getLyrics(artist, title) {
     const url = `https://api.lyrics.ovh/v1/${artist}/${title}`;
@@ -122,7 +131,7 @@ function forward(){
 }
 function saveData() {
     const lyrics = document.getElementById('lyrics').textContent;
-    console.log("Saving lyrics:", lyrics); // Debug: Log the lyrics being saved
+    console.log("Saving lyrics:", lyrics); 
 
     localStorage.setItem('progress', song.currentTime);
     localStorage.setItem('volume', volume.value);
@@ -133,36 +142,69 @@ function saveData() {
         image: document.getElementById('imgchange').src,
         currentTime: document.getElementById('song').currentTime,
         preview_url: song.src,
-        lyrics: lyrics // Save the lyrics
+        lyrics: lyrics 
     };
 
     localStorage.setItem('currentTrack', JSON.stringify(track));
 }
 
 function loadData() {
-     const savedProgress = localStorage.getItem('progress');
-     const savedVolume = localStorage.getItem('volume');
-     const savedTrack = localStorage.getItem('currentTrack');
-        const savedImg = localStorage.getItem('img');
-        if (savedTrack) {
-            const track = JSON.parse(savedTrack);
-            console.log("Loaded lyrics:", track.lyrics); 
-            document.getElementById('Music-name').textContent = track.name;
-            document.getElementById('Artist-name').textContent = track.artist;
-            document.getElementById('imgchange').src = track.image;
-            song.src = track.preview_url; // Restore the song preview URL
-            document.getElementById('lyrics').textContent = track.lyrics || 'Lyrics not found'; // Restore lyrics
-        song.currentTime = track.currentTime;
-        song.play(); 
-        }
-     if (savedVolume !== null) {
-         volume.value = parseFloat(savedVolume); 
-     }
+    const savedTrack = getLocalStorageItem('currentTrack');
+    const savedVolume = getLocalStorageItem('volume');
+    const savedProgress = getLocalStorageItem('progress');
 
-     if (savedProgress !== null) {
-         song.currentTime = parseFloat(savedProgress); 
-     }
+    if (savedTrack) {
+        const track = JSON.parse(savedTrack);
+        updateTrackInfo(track);
+        playTrack(track);
+    }
+
+    if (savedVolume !== null) {
+        setVolume(parseFloat(savedVolume));
+    }
+
+    if (savedProgress !== null) {
+        setCurrentTime(parseFloat(savedProgress));
+    }
 }
+
+function getLocalStorageItem(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch (error) {
+        console.error(`Error accessing localStorage for key "${key}":`, error);
+        return null;
+    }
+}
+
+function updateTrackInfo({ name, artist, image }) {
+    document.getElementById('Music-name').textContent = name;
+    document.getElementById('Artist-name').textContent = artist;
+    document.getElementById('imgchange').src = image;
+}
+
+function setVolume(value) {
+    volume.value = value;
+    song.volume = value;
+}
+
+function setCurrentTime(value) {
+    song.currentTime = value;
+}
+
+// Separate function to play the song on button click
+function startPlaying() {
+    song.play().then(() => {
+        ctrIcon.classList.remove("fa-play");
+        ctrIcon.classList.add("fa-pause");
+    }).catch(error => {
+        console.error("Error playing song:", error);
+    });
+}
+
+// Load data when the page is loaded
+getAccessToken().then(loadData);
+
 
 
 
@@ -203,6 +245,7 @@ function end(){
         ctrIcon.classList.add("fa-play");
 }
 }
+
 
 
 

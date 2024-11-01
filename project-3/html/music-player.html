@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="app.css">
+    <link rel="stylesheet" href="../css/app.css">
     <title>Music Player</title>
     <script src="https://kit.fontawesome.com/fd14f4e7d7.js" crossorigin="anonymous"></script>
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
@@ -16,15 +16,12 @@
     <div class="container">
         <!-- Left Side: Music Player Section -->
         <div class="music-player">
-            <!-- Search Bar -->
-            <form id="search-form" onsubmit="searchMusic(event)">
-                <input type="text" id="search-input" placeholder="Search for music..." />
-                <button type="submit"><i class="fa-solid fa-search"></i></button>
-            </form>
+           
 
             <nav>
-                <div class="circle">
-                    <i class="fa-solid fa-angle-left"></i>
+                <div class="circle" onclick="location.href='./index.html'">
+                    <i class="fa-solid fa-angle-left" onclick="location.href='./index.html'"></i>
+
                 </div>
                 <div class="circle">
                     <i class="fa-solid fa-bars"></i>
@@ -47,7 +44,7 @@
                 <div onclick="back()">
                     <i class="fa-solid fa-backward"></i>
                 </div>
-                <div onclick="playPause()">
+                <div onclick="playPause()" id="start-play" onclick="startPlaying()">
                     <i class="fa-solid fa-play" id="ctrIcon"></i>
                 </div>
                 <div onclick="forward()">
@@ -74,7 +71,7 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="../js/app.js"></script>
 </body>
 
 </html>
